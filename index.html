@@ -51,9 +51,9 @@
         <a href="snippets.html" class="btn-primary">Jelajahi Snippets <i class="fa-solid fa-arrow-right"></i></a>
       </div>
       <div class="hero-stats reveal-up d4" id="heroStats">
-        <div class="stat-pill"><span id="statSnippets">—</span> Snippets</div>
-        <div class="stat-pill"><span id="statAuthors">—</span> Authors</div>
-        <div class="stat-pill"><span id="statLangs">—</span> Bahasa</div>
+        <div class="stat-pill"><span id="statSnippets">0</span> Snippets</div>
+        <div class="stat-pill"><span id="statAuthors">0</span> Authors</div>
+        <div class="stat-pill"><span id="statLangs">0</span> Bahasa</div>
       </div>
     </div>
   </section>
@@ -84,25 +84,46 @@
   <script src="assets/app.js"></script>
   <script>
     initNav();
+
     async function initHome() {
-      const db = await fetchSnippets();
-      const snippets = db.snippets || [];
+      try {
+        const db = await fetchSnippets();
+        console.log('Database:', db);
 
-      const authors = new Set(snippets.map(s => s.author)).size;
-      const langs = new Set(snippets.map(s => s.language || 'JS')).size;
-      document.getElementById('statSnippets').textContent = snippets.length;
-      document.getElementById('statAuthors').textContent = authors;
-      document.getElementById('statLangs').textContent = langs;
+        const snippets = db.snippets || [];
+        console.log('Total snippets:', snippets.length);
 
-      const latest = [...snippets].sort((a,b) => b.createdAt - a.createdAt).slice(0, 6);
-      const grid = document.getElementById('latestGrid');
-      if (!latest.length) {
-        grid.innerHTML = '<p class="empty-msg">Belum ada snippet</p>';
-      } else {
-        grid.innerHTML = latest.map(s => snippetCard(s)).join('');
-        revealOnScroll();
+        if (!snippets.length) {
+          document.getElementById('statSnippets').textContent = '0';
+          document.getElementById('statAuthors').textContent = '0';
+          document.getElementById('statLangs').textContent = '0';
+          document.getElementById('latestGrid').innerHTML = '<p class="empty-msg">Belum ada snippet. Tambahkan lewat WhatsApp Bot.</p>';
+          return;
+        }
+
+        const authors = new Set(snippets.map(s => s.author).filter(Boolean));
+        const langs = new Set(snippets.map(s => s.language || 'JS').filter(Boolean));
+
+        document.getElementById('statSnippets').textContent = snippets.length;
+        document.getElementById('statAuthors').textContent = authors.size;
+        document.getElementById('statLangs').textContent = langs.size;
+
+        const validSnippets = snippets.filter(s => s.createdAt);
+        const latest = [...validSnippets].sort((a, b) => b.createdAt - a.createdAt).slice(0, 6);
+        const grid = document.getElementById('latestGrid');
+
+        if (!latest.length) {
+          grid.innerHTML = '<p class="empty-msg">Belum ada snippet</p>';
+        } else {
+          grid.innerHTML = latest.map(s => snippetCard(s)).join('');
+          revealOnScroll();
+        }
+      } catch (error) {
+        console.error('Error initHome:', error);
+        document.getElementById('latestGrid').innerHTML = '<p class="empty-msg">Gagal memuat snippets. Cek console untuk detail.</p>';
       }
     }
+
     initHome();
   </script>
 </body>
