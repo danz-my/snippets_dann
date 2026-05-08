@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>SnippetHub — Home</title>
+  <link rel="icon" href="assets/favicon.png" type="image/png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+  <nav class="nav" id="nav">
+    <div class="nav-inner">
+      <a href="index.html" class="nav-logo">
+        <img src="assets/icon.jpg" alt="Logo" class="logo-img">
+        SnippetHub
+      </a>
+      <div class="nav-links" id="navLinks">
+        <a href="index.html" class="nav-link active">Home</a>
+        <a href="snippets.html" class="nav-link">Snippets</a>
+      </div>
+      <button class="hamburger" id="hamburger" aria-label="Menu">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+    <div class="mobile-menu" id="mobileMenu">
+      <a href="index.html" class="mob-link active">Home</a>
+      <a href="snippets.html" class="mob-link">Snippets</a>
+    </div>
+  </nav>
+
+  <section class="hero">
+    <div class="hero-bg">
+      <div class="grid-lines"></div>
+      <div class="blob blob-1"></div>
+      <div class="blob blob-2"></div>
+    </div>
+    <div class="container">
+      <div class="hero-tag reveal-up">
+        <span class="dot"></span> Live via WhatsApp Bot
+      </div>
+      <h1 class="hero-title reveal-up d1">
+        Store &<br><em>Share</em> your<br>Code Snippets.
+      </h1>
+      <p class="hero-desc reveal-up d2">
+        Simpan snippet code langsung lewat bot WhatsApp. Temukan, filter, dan copy code dari berbagai bahasa pemrograman.
+      </p>
+      <div class="hero-btns reveal-up d3">
+        <a href="snippets.html" class="btn-primary">Jelajahi Snippets <i class="fa-solid fa-arrow-right"></i></a>
+      </div>
+      <div class="hero-stats reveal-up d4" id="heroStats">
+        <div class="stat-pill"><span id="statSnippets">—</span> Snippets</div>
+        <div class="stat-pill"><span id="statAuthors">—</span> Authors</div>
+        <div class="stat-pill"><span id="statLangs">—</span> Bahasa</div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container">
+      <div class="section-head reveal-up">
+        <h2 class="section-title">Terbaru</h2>
+        <a href="snippets.html" class="see-all">Lihat semua <i class="fa-solid fa-arrow-right"></i></a>
+      </div>
+      <div class="cards-grid" id="latestGrid">
+        <div class="loading-row"><div class="spinner"></div></div>
+      </div>
+    </div>
+  </section>
+
+  <footer class="footer">
+    <div class="container">
+      <span class="footer-logo">
+        <img src="assets/icon.jpg" alt="Logo" class="logo-img-footer">
+        SnippetHub
+      </span>
+      <span class="footer-copy">Powered by WhatsApp Bot</span>
+    </div>
+  </footer>
+
+  <script src="assets/config.js"></script>
+  <script src="assets/app.js"></script>
+  <script>
+    initNav();
+    async function initHome() {
+      const db = await fetchSnippets();
+      const snippets = db.snippets || [];
+
+      const authors = new Set(snippets.map(s => s.author)).size;
+      const langs = new Set(snippets.map(s => s.language || 'JS')).size;
+      document.getElementById('statSnippets').textContent = snippets.length;
+      document.getElementById('statAuthors').textContent = authors;
+      document.getElementById('statLangs').textContent = langs;
+
+      const latest = [...snippets].sort((a,b) => b.createdAt - a.createdAt).slice(0, 6);
+      const grid = document.getElementById('latestGrid');
+      if (!latest.length) {
+        grid.innerHTML = '<p class="empty-msg">Belum ada snippet</p>';
+      } else {
+        grid.innerHTML = latest.map(s => snippetCard(s)).join('');
+        revealOnScroll();
+      }
+    }
+    initHome();
+  </script>
+</body>
+</html>
