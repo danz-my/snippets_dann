@@ -1,8 +1,29 @@
 async function fetchSnippets() {
   try {
-    const res = await fetch(`${RAW_BASE}/${SNIPPETS_FILE}?t=${Date.now()}`);
-    if (!res.ok) throw new Error('fetch failed');
-    return await res.json();
+    const metaRes = await fetch(`${RAW_BASE}/${SNIPPETS_FILE}?t=${Date.now()}`);
+    if (!metaRes.ok) throw new Error('fetch meta failed');
+    const metaData = await metaRes.json();
+
+    const snippets = await Promise.all(
+      metaData.snippets.map(async (item) => {
+        try {
+          if (typeof item.code === 'string' && item.code.match(/^\.{1,2}\//)) {
+            const codeRes = await fetch(`${RAW_BASE}/${item.code}?t=${Date.now()}`);
+            if (!codeRes.ok) throw new Error('fetch code failed');
+            const code = await codeRes.text();
+            const lastModified = codeRes.headers.get('Last-Modified');
+            const createdAt = lastModified ? new Date(lastModified).getTime() : Date.now();
+            return { ...item, code, createdAt };
+          } else {
+            return { ...item, createdAt: item.createdAt || Date.now() };
+          }
+        } catch {
+          return { ...item, code: '// ❌ File tidak ditemukan', createdAt: Date.now() };
+        }
+      })
+    );
+
+    return { lastUpdated: Date.now(), snippets };
   } catch {
     return { snippets: [], lastUpdated: null };
   }
